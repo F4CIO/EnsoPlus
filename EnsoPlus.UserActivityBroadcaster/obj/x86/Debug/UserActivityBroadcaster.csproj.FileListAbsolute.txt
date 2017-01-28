@@ -1,0 +1,12 @@
+D:\Projects\UserActivityBroadcaster\UserActivityBroadcaster\bin\Debug\UserActivityBroadcaster.exe
+D:\Projects\UserActivityBroadcaster\UserActivityBroadcaster\bin\Debug\UserActivityBroadcaster.pdb
+D:\Projects\UserActivityBroadcaster\UserActivityBroadcaster\bin\Debug\BuildingBlocks.WindowsNT.dll
+D:\Projects\UserActivityBroadcaster\UserActivityBroadcaster\bin\Debug\BuildingBlocks.WindowsNT.pdb
+D:\Projects\UserActivityBroadcaster\UserActivityBroadcaster\obj\x86\Debug\ResolveAssemblyReference.cache
+D:\Projects\UserActivityBroadcaster\UserActivityBroadcaster\obj\x86\Debug\UserActivityBroadcaster.FormMonitor.resources
+D:\Projects\UserActivityBroadcaster\UserActivityBroadcaster\obj\x86\Debug\UserActivityBroadcaster.Properties.Resources.resources
+D:\Projects\UserActivityBroadcaster\UserActivityBroadcaster\obj\x86\Debug\GenerateResource-ResGen.read.1.tlog
+D:\Projects\UserActivityBroadcaster\UserActivityBroadcaster\obj\x86\Debug\GenerateResource-ResGen.write.1.tlog
+D:\Projects\UserActivityBroadcaster\UserActivityBroadcaster\obj\x86\Debug\UserActivityBroadcaster.exe
+D:\Projects\UserActivityBroadcaster\UserActivityBroadcaster\obj\x86\Debug\UserActivityBroadcaster.pdb
+D:\Projects\UserActivityBroadcaster\UserActivityBroadcaster\obj\x86\Debug\UserActivityBroadcaster.FormHelp.resources

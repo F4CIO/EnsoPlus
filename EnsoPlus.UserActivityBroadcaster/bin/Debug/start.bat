@@ -1,0 +1,1 @@
+useractivitybroadcaster -k -c:UserActivityReceiver -h

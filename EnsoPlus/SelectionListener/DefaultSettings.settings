@@ -1,0 +1,84 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="EnsoPlus.SelectionListener" GeneratedClassName="DefaultSettings">
+  <Profiles />
+  <Settings>
+    <Setting Name="BackgroundOpacity" Type="System.Double" Scope="Application">
+      <Value Profile="(Default)">0.65</Value>
+    </Setting>
+    <Setting Name="BackgroundColor" Type="System.Drawing.Color" Scope="Application">
+      <Value Profile="(Default)">Black</Value>
+    </Setting>
+    <Setting Name="FrameType" Type="System.Int32" Scope="Application">
+      <Value Profile="(Default)">1</Value>
+    </Setting>
+    <Setting Name="FrameColor" Type="System.Drawing.Color" Scope="Application">
+      <Value Profile="(Default)">Orange</Value>
+    </Setting>
+    <Setting Name="MainHeaderFont" Type="System.Drawing.Font" Scope="Application">
+      <Value Profile="(Default)">Arial, 30pt</Value>
+    </Setting>
+    <Setting Name="NormalFont" Type="System.Drawing.Font" Scope="Application">
+      <Value Profile="(Default)">Microsoft Sans Serif, 8.25pt</Value>
+    </Setting>
+    <Setting Name="MainHeaderForeColor" Type="System.Drawing.Color" Scope="Application">
+      <Value Profile="(Default)">Orange</Value>
+    </Setting>
+    <Setting Name="MainHeaderBackColor" Type="System.Drawing.Color" Scope="Application">
+      <Value Profile="(Default)">Black</Value>
+    </Setting>
+    <Setting Name="NormalTextForeColor" Type="System.Drawing.Color" Scope="Application">
+      <Value Profile="(Default)">GreenYellow</Value>
+    </Setting>
+    <Setting Name="NormalTextBackColor" Type="System.Drawing.Color" Scope="Application">
+      <Value Profile="(Default)">Transparent</Value>
+    </Setting>
+    <Setting Name="Size" Type="System.Drawing.Size" Scope="Application">
+      <Value Profile="(Default)">640, 400</Value>
+    </Setting>
+    <Setting Name="Location" Type="System.Drawing.Point" Scope="Application">
+      <Value Profile="(Default)">0, 0</Value>
+    </Setting>
+    <Setting Name="BackgroundMarginsSize" Type="System.Int32" Scope="Application">
+      <Value Profile="(Default)">10</Value>
+    </Setting>
+    <Setting Name="ShowHideEffect" Type="System.Int32" Scope="Application">
+      <Value Profile="(Default)">1</Value>
+    </Setting>
+    <Setting Name="ShowHideEffectDuration" Type="System.TimeSpan" Scope="Application">
+      <Value Profile="(Default)">00:00:01</Value>
+    </Setting>
+    <Setting Name="ShowHideEffectUpdateInterval" Type="System.TimeSpan" Scope="Application">
+      <Value Profile="(Default)">00:00:00.0500000</Value>
+    </Setting>
+    <Setting Name="MainHeaderHeight" Type="System.Int32" Scope="Application">
+      <Value Profile="(Default)">45</Value>
+    </Setting>
+    <Setting Name="FrameThickness" Type="System.Int32" Scope="Application">
+      <Value Profile="(Default)">2</Value>
+    </Setting>
+    <Setting Name="Margins" Type="System.Int32" Scope="Application">
+      <Value Profile="(Default)">10</Value>
+    </Setting>
+    <Setting Name="SelectedTextBackColor" Type="System.Drawing.Color" Scope="Application">
+      <Value Profile="(Default)">Gray</Value>
+    </Setting>
+    <Setting Name="SelectedTextForeColor" Type="System.Drawing.Color" Scope="Application">
+      <Value Profile="(Default)">OliveDrab</Value>
+    </Setting>
+    <Setting Name="Interval" Type="System.Int64" Scope="Application">
+      <Value Profile="(Default)">500</Value>
+    </Setting>
+    <Setting Name="QueueLength" Type="System.Int32" Scope="Application">
+      <Value Profile="(Default)">100</Value>
+    </Setting>
+    <Setting Name="SplitterPosition" Type="System.Int32" Scope="Application">
+      <Value Profile="(Default)">25</Value>
+    </Setting>
+    <Setting Name="Active" Type="System.Boolean" Scope="Application">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="PasteKeyCombination" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">162,68</Value>
+    </Setting>
+  </Settings>
+</SettingsFile>
