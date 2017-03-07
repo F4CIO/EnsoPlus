@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -336,6 +337,24 @@ namespace CraftSynth.BuildingBlocks.Common
 			return sb1.ToString();
 		}
 
+		/// <summary>
+		/// All chars found in Path.GetInvalidFileNameChars() or Path.GetInvalidPathChars() are replaced.
+		/// </summary>
+		/// <param name="s"></param>
+		/// <param name="r"></param>
+		/// <returns></returns>
+		public static string ReplaceInvalidFileSystemCharacters(this string s, string r)
+		{
+			var invalid = Path.GetInvalidFileNameChars().Union(Path.GetInvalidPathChars());
+
+			foreach (char c in invalid)
+			{
+				s = s.Replace(c.ToString(), r);
+			}
+
+			return s;
+		}	
+
 		public static string RemoveRepeatedWords(this string s)
 		{
 			if (s == null)
@@ -645,6 +664,20 @@ namespace CraftSynth.BuildingBlocks.Common
 			return r;
 		}
 
+		public static string ReplaceSubstrings(this string s, string startMarker, string endMarker, string replacement, bool preserveMarkers = false)
+		{
+			var parts = s.GetSubstrings(startMarker, endMarker);
+			if (preserveMarkers)
+			{
+				replacement = startMarker + replacement + endMarker;
+			}
+			foreach (string p in parts)
+			{
+				s = s.Replace(startMarker+p+endMarker, replacement);
+			}
+			return s;
+		}
+
 		public static string RemoveSubstring(this string s, string startMarker, string endMarker, bool removeMarkersAlso)
 		{
 			string r = null;
@@ -865,6 +898,126 @@ namespace CraftSynth.BuildingBlocks.Common
 			return r;
 		}
 
+		/// <summary>
+		/// Finds consecvutive words and returns first next index after them.
+		///  Example: for text.IndexAfterWords(true, "charset",ExtenderClass.OPTIONAL_SPACES,"=",ExtenderClass.OPTIONAL_SPACES,"\"") it will find all these:
+		///  'charset = "' 
+		///  'charset    = "'
+		///  'charset="'
+		/// </summary>
+		/// <param name="caseSensitive">if set to <c>true</c> [case sensitive].</param>
+		/// <param name="words">The words. You can use ExtenderClass.OPTIONAL_SPACES and ExtenderClass.OPTIONAL_SPACES as special constants.</param>
+		/// <returns></returns>
+		public static int IndexAfterWords(this string text, bool caseSensitive, params string[] words)
+		{
+			int index = -1;
+			string origText = text;
+
+			if (text.IsNOTNullOrWhiteSpace() && text.Length >= words.Sum(w => w.Length))
+			{
+				//if (caseSensitive == false)
+				//{
+				//	text = text.ToLower();
+				//	for (int i = 0; i < words.Count(); i++)
+				//	{
+				//		words[i] = words[i].ToLower();
+				//	}
+				//}
+				StringComparison sc = caseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
+
+				index = 0;
+				while (index != -1)
+				{
+					index = origText.IndexOf(words[0], index, sc);
+					if (index != -1)
+					{
+						index += words[0].Length;
+						text = origText.Substring(index);
+						if (words.Count() > 1)
+						{
+							int index2 = index;
+							for (int i = 1; i < words.Count(); i++)
+							{
+								if (text != null && index2 != -1)
+								{
+									switch (words[i])
+									{
+										case OPTIONAL_SPACES:
+											text = text.TrimSpacesAtStartAndAdvanceIndex(ref index2, false);
+											break;
+										case REQUIRED_SPACES:
+											text = text.TrimSpacesAtStartAndAdvanceIndex(ref index2, true);
+											break;
+										default:
+											text = text.TrimXAtStartAndAdvanceIndex(words[i], ref index2, true, caseSensitive);
+											break;
+									}
+								}
+							}
+
+							if (index2 != -1)
+							{//all words found
+								index = index2;
+								break;
+							}
+						}
+					}
+				}
+
+			}
+
+			return index;
+		}
+
+		public const string OPTIONAL_SPACES = "<({OS})>";
+		public const string REQUIRED_SPACES = "<({RS})>";
+
+		public static string TrimXAtStartAndAdvanceIndex(this string text, string X, ref int index, bool resetResultAndIndexIfNotFound, bool caseSensitive=true)
+		{
+			if (text != null)
+			{
+				StringComparison sc = caseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
+				if (text.StartsWith(X, sc))
+				{
+					text = text.Substring(X.Length);
+					index += X.Length;
+				}
+				else
+				{
+					if (resetResultAndIndexIfNotFound)
+					{
+						text = null;
+						index = -1;
+					}
+				}
+			}
+
+			return text;
+		}
+
+		public static string TrimSpacesAtStartAndAdvanceIndex(this string text, ref int index, bool resetResultAndIndexIfNotFound)
+		{
+			if (text != null)
+			{
+				string textTrimmed = text.TrimStart(' ');
+				if (textTrimmed.Length == text.Length)
+				{
+					if (resetResultAndIndexIfNotFound)
+					{
+						text = null;
+						index = -1;
+					}
+				}
+				else
+				{
+					index += text.Length - textTrimmed.Length;
+					text = textTrimmed;
+				}
+			}
+
+			return text;
+		}
+
 		public static int OccurrencesCount(this string s, string keyword)
 		{
 			var offset = -1;
@@ -902,6 +1055,18 @@ namespace CraftSynth.BuildingBlocks.Common
 			else
 			{
 				return s.Remove(s.Length - x);
+			}
+		}
+
+		public static string RemoveFirstXChars(this string s, int x, string resultIfStringIsShorter = "")
+		{
+			if (s.Length < x)
+			{
+				return resultIfStringIsShorter;
+			}
+			else
+			{
+				return s.Substring(x);
 			}
 		}
 
@@ -1245,7 +1410,7 @@ namespace CraftSynth.BuildingBlocks.Common
 
 		#region CSV
 		/// <summary>
-		/// Splits string instance on every comma sign. 
+		/// Splits string instance on every comma sign. I am editing /improving this.......
 		/// Does trimming all the way. 
 		/// Returns list if resuting parts which does not include empty or whitespace items.
 		/// On any error returns null.
@@ -1401,6 +1566,36 @@ namespace CraftSynth.BuildingBlocks.Common
 				if (separator != null)
 				{
 					r = r.TrimEnd(separator.Value);
+				}
+			}
+
+			return r;
+		}
+
+		public static string ToSingleString(this IEnumerable<string> ss, string nullCaseResult = null, string zeroItemsCaseResult = "", string separator = null)
+		{
+			string r;
+
+			if (ss == null)
+			{
+				r = nullCaseResult;
+			}
+			else if (ss.Count() == 0)
+			{
+				r = zeroItemsCaseResult;
+			}
+			else
+			{
+				r = string.Empty;
+				int i = 0;
+				foreach (string s in ss)
+				{
+					r = r + s;
+					if (i+1<ss.Count())
+					{
+						r = r+separator ?? string.Empty;
+					}
+					i++;
 				}
 			}
 

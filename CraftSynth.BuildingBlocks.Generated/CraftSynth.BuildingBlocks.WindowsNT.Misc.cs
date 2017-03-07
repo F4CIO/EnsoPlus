@@ -376,19 +376,38 @@ namespace CraftSynth.BuildingBlocks.WindowsNT
 		/// </summary>
 		/// <param name="process"></param>
 		/// <param name="force"></param>
+		/// <param name="proceedOnError">This method may find several processes. If killing one fails it could proceed with killing others.</param>
 		/// <returns></returns>
-		public static int CloseProcesses(string process, bool force)
+		public static int CloseProcesses(string process, bool force, bool proceedOnError = false)
 		{
 			Process[] processes = Process.GetProcessesByName(process);
 
 			for (int i = 0; i < processes.Length; i++)
 			{
-				processes[i].CloseMainWindow();
+				try
+				{
+					processes[i].CloseMainWindow();
 
-				if (force)
-					processes[i].Kill();
-				else
-					processes[i].WaitForExit();
+					if (force)
+					{
+						processes[i].Kill();
+					}
+					else
+					{
+						processes[i].WaitForExit();
+					}
+				}
+				catch (Exception e)
+				{
+					if (!proceedOnError)
+					{
+						throw;
+					}
+					else
+					{
+						//proceed
+					}
+				}
 			}
 
 			return processes.Length;
@@ -624,11 +643,124 @@ namespace CraftSynth.BuildingBlocks.WindowsNT
 			SendMessage(parent.Handle, WM_SETREDRAW, false, 0);
 		}
 
-		public static void ResumeDrawing(Control parent)
+		public static void ResumeDrawing(Control parent, bool performRefresh = false)
 		{
 			SendMessage(parent.Handle, WM_SETREDRAW, true, 0);
-			parent.Refresh();
+			if (performRefresh)
+			{
+				parent.Refresh();
+			}
 		}
 
+	}
+
+	/// <summary>
+	/// Usage:
+	///  
+	/// using(someControl.DisableRedrawingInThisBlock())      //redraw events are disabled here
+	/// {
+	///     //do something...no redraw events will be fired
+	/// }                                                     //redraw events are auto-enabled here and control is refreshed
+	/// 
+	/// 
+	/// or:
+	/// 
+	/// 
+	/// /// using(someControl.DisableRedrawingInThisBlock(false))  //redraw events are disabled here
+	/// {
+	///     //do something...no redraw events will be fired
+	/// }                                                          //redraw events are auto-enabled here
+	/// 
+	/// 
+	/// 
+	/// You can nest above statements and only top-level will be considered for that control
+	/// </summary>
+	public static class RedrawingDisabler
+	{
+		private static readonly object _lock = new object();
+		private static List<RedrawingDisablerSession> _activeSessions = new List<RedrawingDisablerSession>(); 
+
+		public static RedrawingDisablerSession DisableRedrawingInThisBlock(this Control control, bool performRefreshOnBlockExit = true)
+		{
+			lock (_lock)
+			{
+				return new RedrawingDisablerSession(control, performRefreshOnBlockExit);
+			}
+		}
+
+		public static void DisableEvents(RedrawingDisablerSession session)
+		{
+			lock (_lock)
+			{
+				if (!_activeSessions.Exists(s=>s._control==session._control))
+				{//no other sessions for this control -we are at top-level block so perform
+					Misc.SuspendDrawing(session._control);
+				}
+				_activeSessions.Add(session);
+			}
+		}
+
+		public static void EnableEvents(RedrawingDisablerSession session)
+		{
+			lock (_lock)
+			{
+				_activeSessions.RemoveAll(s => s._sessionId.CompareTo(session._sessionId) == 0);
+				if (!_activeSessions.Exists(s => s._control == session._control))
+				{//no more sessions for this control -we are at top-level block so perform
+					Misc.ResumeDrawing(session._control, session._performRefreshOnBlockExit);
+				}
+			}
+		}
+	}
+
+	public class RedrawingDisablerSession : IDisposable
+	{
+		public Guid _sessionId;
+		public Control _control;
+		public bool _performRefreshOnBlockExit;
+
+		public RedrawingDisablerSession(Control control, bool performRefreshOnBlockExit)
+		{
+			this._sessionId = Guid.NewGuid();
+			this._control = control;
+			this._performRefreshOnBlockExit = performRefreshOnBlockExit;
+
+			RedrawingDisabler.DisableEvents(this);                          //DISABLE
+		}
+
+		// Public implementation of Dispose pattern callable by consumers. 
+		public void Dispose()
+		{
+			this.Dispose(true);
+			GC.SuppressFinalize(this);
+		}
+
+		// Flag: Has Dispose already been called? 
+		bool _disposed = false;
+
+		// Protected implementation of Dispose pattern. 
+		protected virtual void Dispose(bool disposing)
+		{
+			if (!this._disposed)
+			{
+				RedrawingDisabler.EnableEvents(this);                       //ENABLE
+
+				if (disposing)
+				{
+					// Free any managed objects here. 
+					//
+				}
+
+				// Free any unmanaged objects here. 
+				//
+
+				this._disposed = true;
+			}
+		}
+
+		~RedrawingDisablerSession()
+		{
+			this.Dispose(false);
+		}
 	}
 }

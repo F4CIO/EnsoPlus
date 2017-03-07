@@ -13,8 +13,8 @@ using CBB_LoggingCustomTraceLogExtensions = CraftSynth.BuildingBlocks.Logging.Cu
 
 namespace CraftSynth.BuildingBlocks.IO
 {
-    public class Http
-    {
+	public class Http
+	{
 		/// <summary>
 		/// [contentType] can be for example:image/jpeg, pdf, text/html, application/zip, video/mpeg
 		/// For rest refer to:
@@ -51,7 +51,7 @@ namespace CraftSynth.BuildingBlocks.IO
 		/// <param name="blockAllExceptions"></param>
 		/// <param name="errorCaseResult"></param>
 		/// <returns></returns>
-		public static string RequestUri(string uri, string username=null, string password=null, string domain=null, /*string accessToken = null, */ List<string> headers = null, bool isPostMethod = false,string postData = null, int requestUriContentType = 0, object customTraceLog = null, bool blockAllExceptions = false, string errorCaseResult=null, bool expectCookies = false, List<Cookie> cookies = null, bool detailedLog = true)
+		public static string RequestUri(string uri, string username=null, string password=null, string domain=null, /*string accessToken = null, */ List<string> headers = null, bool isPostMethod = false,string postData = null, int requestUriContentType = 0, object customTraceLog = null, bool blockAllExceptions = false, string errorCaseResult=null, bool expectCookies = false, List<Cookie> cookies = null, bool detailedLog = true, System.Text.Encoding encoderForParsingResult = null, string fileNameWhereToDumpResponse = null, bool? allowAutoRedirect = null)
 		{
 			string r = null;
 
@@ -67,7 +67,7 @@ namespace CraftSynth.BuildingBlocks.IO
 				byte[] buf = new byte[8192];
 
 				// prepare the web page we will be asking for
-				HttpWebRequest request = (HttpWebRequest)WebRequest.Create(uri);
+				WebRequest request = (WebRequest)WebRequest.Create(uri);
 				if (CBB_CommonExtenderClass.IsNOTNullOrWhiteSpace(username) && CBB_CommonExtenderClass.IsNullOrWhiteSpace(password))
 				{
 					throw new Exception("Password must be specified if username is.");
@@ -105,19 +105,49 @@ namespace CraftSynth.BuildingBlocks.IO
 						//http://stackoverflow.com/questions/239725/cannot-set-some-http-headers-when-using-system-net-webrequest
 						if (header.ToLower() == "connection:keep-alive")
 						{
-							request.KeepAlive = true;
+							if (request is HttpWebRequest)
+							{
+								(request as HttpWebRequest).KeepAlive = true;
+							}
+							else
+							{
+								throw new Exception("Can not set http headers when using WebRequest.");
+							}
 						}
 						else if(header.Split(':')[0].ToLower()=="referer")
 						{
-							request.Referer = header.Substring(header.IndexOf(':')+1);
+							
+							if (request is HttpWebRequest)
+							{
+								(request as HttpWebRequest).Referer = header.Substring(header.IndexOf(':') + 1);
+							}
+							else
+							{
+								throw new Exception("Can not set http headers when using WebRequest.");
+							}
 						}
 						else if(header.Split(':')[0].ToLower()=="user-agent")
 						{
-							request.UserAgent = header.Substring(header.IndexOf(':') + 1);
+							
+							if (request is HttpWebRequest)
+							{
+								(request as HttpWebRequest).UserAgent = header.Substring(header.IndexOf(':') + 1);
+							}
+							else
+							{
+								throw new Exception("Can not set http headers when using WebRequest.");
+							}
 						}
 						else if(header.Split(':')[0].ToLower()=="accept")
 						{
-							request.Accept = header.Substring(header.IndexOf(':') + 1);
+							if (request is HttpWebRequest)
+							{
+								(request as HttpWebRequest).Accept = header.Substring(header.IndexOf(':') + 1);
+							}
+							else
+							{
+								throw new Exception("Can not set http headers when using WebRequest.");
+							}
 						}
 						else
 						{
@@ -199,6 +229,33 @@ namespace CraftSynth.BuildingBlocks.IO
 							}
 						}
 						break;
+					case (int)RequestUriContentType.ImageJpeg:
+					case (int)RequestUriContentType.ImagePng:
+					case (int)RequestUriContentType.ImageGif:
+						switch (requestUriContentType)
+						{
+							case (int)RequestUriContentType.ImageJpeg:request.ContentType = "image/jpeg";break;
+							case (int)RequestUriContentType.ImagePng:request.ContentType = "image/png";break;
+							case (int)RequestUriContentType.ImageGif:request.ContentType = "image/gif";break;
+						}
+
+						if (CBB_CommonExtenderClass.IsNOTNullOrWhiteSpace(postData))
+						{
+							if (detailedLog)
+							{
+								CBB_LoggingCustomTraceLogExtensions.AddLine(log, "Requesting with post data '" + postData + "'...");
+							}
+							using (var streamWriter = new StreamWriter(request.GetRequestStream()))
+							{
+								//initiate the request
+								//JavaScriptSerializer serializer = new JavaScriptSerializer();
+								//var d = serializer.Deserialize<Dictionary<string, object>>(postData);
+								streamWriter.Write(postData);
+								streamWriter.Flush();
+								streamWriter.Close();
+							}
+						}
+						break;
 					case (int)RequestUriContentType.ApplicationXWwwFormUlrEncoded:
 						request.ContentType = "application/x-www-form-urlencoded";
 						ASCIIEncoding encoder = new ASCIIEncoding();
@@ -211,42 +268,104 @@ namespace CraftSynth.BuildingBlocks.IO
 
 				if (cookies != null)
 				{
-					request.CookieContainer = new CookieContainer();
-					foreach (Cookie cookie in cookies)
+					if (request is HttpWebRequest)
 					{
-						request.CookieContainer.Add(cookie);
+						(request as HttpWebRequest).CookieContainer = new CookieContainer();
+						foreach (Cookie cookie in cookies)
+						{
+							(request as HttpWebRequest).CookieContainer.Add(cookie);
+						} 
 					}
+					else
+					{
+						throw new Exception("Can not set http headers when using WebRequest.");
+					}
+					
 				}
 
-				request.AllowAutoRedirect = false;
+				if (request is HttpWebRequest && allowAutoRedirect!=null)
+				{
+					(request as HttpWebRequest).AllowAutoRedirect = allowAutoRedirect.Value;
+				}
 				
 				// execute the request
 				HttpWebResponse response = (HttpWebResponse)request.GetResponse();
 
-				// we will read data via the response stream
-				Stream resStream = response.GetResponseStream();
+				//if (
+				//	requestUriContentType == (int) RequestUriContentType.ImageJpeg ||
+				//	requestUriContentType == (int) RequestUriContentType.ImagePng ||
+				//	requestUriContentType == (int) RequestUriContentType.ImageGif
+				//	)
+				//{
+				//	// Check that the remote file was found. The ContentType
+				//	// check is performed since a request for a non-existent
+				//	// image file might be redirected to a 404-page, which would
+				//	// yield the StatusCode "OK", even though the image was not
+				//	// found.
+				//	if ((response.StatusCode == HttpStatusCode.OK ||
+				//		response.StatusCode == HttpStatusCode.Moved ||
+				//		response.StatusCode == HttpStatusCode.Redirect) &&
+				//		response.ContentType.StartsWith("image", StringComparison.OrdinalIgnoreCase))
+				//	{
 
-				string tempString = null;
-				int count = 0;
+				//		// if the remote file was found, download it
+				//		//code moved to dump response region below...
+						
+				//		return true;
+				//	}
+				//	else
+				//		return false;
+				//}
 
-				do
+				if (fileNameWhereToDumpResponse != null)
 				{
-					// fill the buffer with data
-					count = resStream.Read(buf, 0, buf.Length);
-
-					// make sure we read some data
-					if (count != 0)
+					using (Stream inputStream = response.GetResponseStream())
+					using (Stream outputStream = File.OpenWrite(fileNameWhereToDumpResponse))
 					{
-						// translate from bytes to ASCII text
-						tempString = Encoding.ASCII.GetString(buf, 0, count);
+						byte[] buffer = new byte[4096];
+						int bytesRead;
+						do
+						{
+							bytesRead = inputStream.Read(buffer, 0, buffer.Length);
+							outputStream.Write(buffer, 0, bytesRead);
+						} while (bytesRead != 0);
 
-						// continue building the string
-						sb.Append(tempString);
+						inputStream.Seek(0, SeekOrigin.Begin);
 					}
 				}
-				while (count > 0); // any more data to read?
 
-				r = sb.ToString();
+				if (encoderForParsingResult == null)
+				{
+					r = DecodeWebResponse(response, log);
+				}
+				else
+				{
+					// we will read data via the response stream
+					Stream resStream = response.GetResponseStream();
+
+					string tempString = null;
+					int count = 0;
+
+					encoderForParsingResult = encoderForParsingResult ?? Encoding.ASCII;
+
+					do
+					{
+						// fill the buffer with data
+						count = resStream.Read(buf, 0, buf.Length);
+
+						// make sure we read some data
+						if (count != 0)
+						{
+							// translate from bytes to ASCII text
+							tempString = encoderForParsingResult.GetString(buf, 0, count);
+
+							// continue building the string
+							sb.Append(tempString);
+						}
+					} while (count > 0); // any more data to read?
+
+					r = sb.ToString();
+				}
 
 				if (expectCookies && response.Cookies != null && response.Cookies.Count > 0)
 				{
@@ -283,13 +402,184 @@ namespace CraftSynth.BuildingBlocks.IO
 			return r;
 		}
 
-    }
+		/// <summary>
+		/// Decodes the web response encoding.
+		/// Source: https://blogs.msdn.microsoft.com/feroze_daud/2004/03/30/downloading-content-from-the-web-using-different-encodings/
+		/// </summary>
+		/// <param name="w">The w.</param>
+		/// <param name="log">The log.</param>
+		/// <returns></returns>
+		private static String DecodeWebResponse(WebResponse w, CBB_LoggingCustomTraceLog log)
+		{
+
+			//
+			// first see if content length header has charset = calue
+			//
+			String charset = null;
+			String ctype = w.Headers["content - type"];
+			if (ctype != null)
+			{
+				int ind = CBB_CommonExtenderClass.IndexAfterWords(ctype, true, "charset", CBB_CommonExtenderClass.OPTIONAL_SPACES, "=");
+				if (ind != -1)
+				{
+					charset = ctype.Substring(ind + 8);
+					CBB_LoggingCustomTraceLogExtensions.AddLine(log, "CT: charset =" + charset);
+				}
+			}
+
+			// save data to a memorystream
+			MemoryStream rawdata = new MemoryStream();
+			byte[] buffer = new byte[1024];
+			Stream rs = w.GetResponseStream();
+			int read = rs.Read(buffer, 0, buffer.Length);
+			while (read > 0)
+			{
+				rawdata.Write(buffer, 0, read);
+				read = rs.Read(buffer, 0, buffer.Length);
+			}
+
+			rs.Close();
+
+			//
+			// if ContentType is null, or did not contain charset, we search in body
+			//
+			if (charset == null)
+			{
+				MemoryStream ms = rawdata;
+				ms.Seek(0, SeekOrigin.Begin);
+
+				StreamReader srr = new StreamReader(ms, Encoding.ASCII);
+				String meta = srr.ReadToEnd();
+
+				if (meta != null)
+				{
+					int start_ind = CBB_CommonExtenderClass.IndexAfterWords(meta, true, "charset", CBB_CommonExtenderClass.OPTIONAL_SPACES, "=", CBB_CommonExtenderClass.OPTIONAL_SPACES, "\"");
+					int end_ind = -1;
+					if (start_ind != -1)
+					{
+						end_ind = meta.IndexOf("\"", start_ind);
+						if (end_ind != -1)
+						{
+							charset = meta.Substring(start_ind, end_ind - start_ind);
+
+							CBB_LoggingCustomTraceLogExtensions.AddLine(log, "META: charset=" + charset);
+						}
+					}
+				}
+			}
+
+			Encoding e = null;
+			if (charset == null)
+			{
+				e = Encoding.ASCII; //default encoding
+			}
+			else
+			{
+				try
+				{
+					e = Encoding.GetEncoding(charset);
+				}
+				catch (Exception ee)
+				{
+					CBB_LoggingCustomTraceLogExtensions.AddLine(log, "Exception: GetEncoding: " + charset);
+					CBB_LoggingCustomTraceLogExtensions.AddLine(log, ee.ToString());
+					e = Encoding.ASCII;
+				}
+			}
+
+			rawdata.Seek(0, SeekOrigin.Begin);
+
+			StreamReader sr = new StreamReader(rawdata, e);
+
+			String s = sr.ReadToEnd();
+
+			return s;
+		}
+
+
+		public static byte[] DownloadFile(string uri, object customTraceLog = null, bool detailedLog = true, bool blockAllExceptions = false, byte[] errorCaseResult = null)
+		{
+			byte[] r = null;
+
+			CBB_LoggingCustomTraceLog log = CBB_LoggingCustomTraceLog.Unbox(customTraceLog);
+			try
+			{
+				CBB_LoggingCustomTraceLogExtensions.AddLineAndIncreaseIdent(log, "Requesting '" + uri + "'...");
+
+				//source: http://stackoverflow.com/questions/3615800/download-image-from-the-site-in-net-c
+				HttpWebRequest request = (HttpWebRequest)WebRequest.Create(uri);
+				HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+
+				// Check that the remote file was found. The ContentType
+				// check is performed since a request for a non-existent
+				// image file might be redirected to a 404-page, which would
+				// yield the StatusCode "OK", even though the image was not
+				// found.
+				if ((response.StatusCode == HttpStatusCode.OK ||
+					 response.StatusCode == HttpStatusCode.Moved ||
+					 response.StatusCode == HttpStatusCode.Redirect)
+					//&& response.ContentType.StartsWith("image", StringComparison.OrdinalIgnoreCase)
+					)
+				{
+					// if the remote file was found, download it
+					using (Stream inputStream = response.GetResponseStream())
+					{
+						using (MemoryStream outputStream = new MemoryStream())
+						{
+							byte[] buffer = new byte[4096];
+							int bytesRead;
+							do
+							{
+								bytesRead = inputStream.Read(buffer, 0, buffer.Length);
+								outputStream.Write(buffer, 0, bytesRead);
+							} while (bytesRead != 0);
+
+							if (detailedLog)
+							{
+								CBB_LoggingCustomTraceLogExtensions.AddLine(log, "Serializing to byte array...");
+							}
+							r = outputStream.ToArray();
+						}
+					}
+				}
+				if (detailedLog)
+				{
+					CBB_LoggingCustomTraceLogExtensions.AddLine(log, "Requesting succeeded. Response length in chars:" + r.Length);
+				}
+			}
+			catch (Exception exception)
+			{
+				if (detailedLog)
+				{
+					CBB_LoggingCustomTraceLogExtensions.AddLine(log, "Requesting of '" + uri + "' failed. Error details:" + exception.Message);
+				}
+				if (!blockAllExceptions)
+				{
+					throw;
+				}
+				else
+				{
+					r = errorCaseResult;
+				}
+			}
+			finally
+			{
+				CBB_LoggingCustomTraceLogExtensions.DecreaseIdent(log);
+			}
+
+			return r;
+		}
+
+	}
 
 	public enum RequestUriContentType
 	{
 		Default = 0,
 		ApplicationJson = 1,
 		ApplicationXWwwFormUlrEncoded = 2,
-		TextJson = 3
+		TextJson = 3,
+		ImageJpeg = 4,
+		ImagePng = 5,
+		ImageGif = 6
 	}
 }

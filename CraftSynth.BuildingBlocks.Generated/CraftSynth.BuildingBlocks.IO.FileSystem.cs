@@ -812,6 +812,7 @@ namespace CraftSynth.BuildingBlocks.IO
 
 
 
+
 		public static string GetTargetPathFromLnkManualy(string filePath)
 		{
 			string fileContents = File.ReadAllText(filePath, Encoding.Unicode);
@@ -834,6 +835,14 @@ namespace CraftSynth.BuildingBlocks.IO
 				target = fileContents.Substring(targetStartIndex).Trim();
 				target = target.Replace("\0", String.Empty);
 			}
+			return target;
+		}
+		
+		public static string GetUrlFromInternetShortcut(string filePath)
+		{
+			var lines = File.ReadAllLines(filePath);
+			string target = lines.First(line => line.ToUpper().StartsWith("URL=")).Substring(4);
+			
 			return target;
 		}
 

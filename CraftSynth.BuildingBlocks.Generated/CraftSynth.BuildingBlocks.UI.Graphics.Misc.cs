@@ -75,6 +75,46 @@ namespace CraftSynth.BuildingBlocks.UI.Graphics
 			return newDimensions;
 		}
 
+		/// <summary>
+		/// Resizes/scales the image. Source: https://www.codeproject.com/Articles/191424/Resizing-an-Image-On-The-Fly-using-NET
+		/// </summary>
+		/// <param name="image">The image.</param>
+		/// <param name="size">The size.</param>
+		/// <param name="preserveAspectRatio">if set to <c>true</c> [preserve aspect ratio].</param>
+		/// <returns></returns>
+		public static Image ResizeImage(Image image, Size size, bool preserveAspectRatio = true, bool disposeInputImpage = false)
+		{
+			int newWidth;
+			int newHeight;
+			if (preserveAspectRatio)
+			{
+				int originalWidth = image.Width;
+				int originalHeight = image.Height;
+				float percentWidth = (float)size.Width / (float)originalWidth;
+				float percentHeight = (float)size.Height / (float)originalHeight;
+				float percent = percentHeight < percentWidth ? percentHeight : percentWidth;
+				newWidth = (int)(originalWidth * percent);
+				newHeight = (int)(originalHeight * percent);
+			}
+			else
+			{
+				newWidth = size.Width;
+				newHeight = size.Height;
+			}
+			Image newImage = new Bitmap(newWidth, newHeight);
+			using (System.Drawing.Graphics graphicsHandle = System.Drawing.Graphics.FromImage(newImage))
+			{
+				graphicsHandle.InterpolationMode = InterpolationMode.HighQualityBicubic;
+				graphicsHandle.DrawImage(image, 0, 0, newWidth, newHeight);
+			}
+
+			if (disposeInputImpage)
+			{
+				image.Dispose();
+			}
+
+			return newImage;
+		}
 
 		//not finished nor tested!
 		public static void SaveUploadedImage(Stream fileStream, string targetPath, int maxWidth, int maxHeight, bool deleteOriginalUploadedFile, out int resultingImageWidth, out int resultingImageHeight)
@@ -217,6 +257,33 @@ namespace CraftSynth.BuildingBlocks.UI.Graphics
 				theImage = (Bitmap)Bitmap.FromStream(ms);
 			}
 			return theImage;
+		}
+
+		public static bool IsValidImage(this byte[] bytes)
+		{
+			bool r = false;
+
+			try
+			{
+				using (var ms = new MemoryStream(bytes))
+				{
+					using (var theImage = (Bitmap) Bitmap.FromStream(ms,true,true))
+					{
+						var a = theImage.Width;
+						var b = theImage.Height;
+						var c = theImage.HorizontalResolution;
+						var d = theImage.VerticalResolution;
+					}
+				}
+
+				r = true;
+			}
+			catch (Exception e)
+			{
+				r = false;
+			}
+
+			return r;
 		}
 
 		/// <summary>

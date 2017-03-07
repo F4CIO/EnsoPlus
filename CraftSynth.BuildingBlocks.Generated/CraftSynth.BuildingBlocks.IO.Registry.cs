@@ -60,7 +60,7 @@ namespace CraftSynth.BuildingBlocks.IO
 					}
 					break;
 				default:
-					throw new Exception("retryScenario '"+retryScenario+"' not implemented.");
+					throw new Exception("retryScenario '" + retryScenario + "' not implemented.");
 			}
 			return r;
 		}
@@ -204,7 +204,7 @@ namespace CraftSynth.BuildingBlocks.IO
 			bool success = false;
 			try
 			{
-				string[] keyPathSteps = keyPath.Trim().Split(new char[] {'\\'}, StringSplitOptions.RemoveEmptyEntries);
+				string[] keyPathSteps = keyPath.Trim().Split(new char[] { '\\' }, StringSplitOptions.RemoveEmptyEntries);
 				RegistryKey hive = null;
 				if (keyPathSteps[0] == "HKEY_CURRENT_USER")
 				{
@@ -274,6 +274,264 @@ namespace CraftSynth.BuildingBlocks.IO
 			{
 				success = false;
 			}
+
+			return success;
+		}
+
+		/// <summary>
+		/// Deletes value from windows registry item.
+		/// </summary>
+		/// <param name="keyPath">Full path to registry item. Example: HKEY_CURRENT_USER\Software\Humanized\Enso\Location</param>
+		/// <param name="retryScenario">On 32-bit OS there is only single node. On 64-bit OS a 32-bit application will be looking at the HKLM\Software\Wow6432Node node by default and 64-bit application will use HKLM\Software. Using this parameter you can override this behaviour.</param>
+		/// <returns>true on success</returns>
+		public static bool DeleteRegistryKey(string keyPath, RegistryRetryScenario retryScenario)
+		{
+			bool r;
+			switch (retryScenario)
+			{
+				case RegistryRetryScenario.TryDefaultOnly:
+					r = DeleteRegistryKey(keyPath);
+					break;
+				case RegistryRetryScenario.Try32BitOnly:
+					r = DeleteRegistryKey(keyPath, 32);
+					break;
+				case RegistryRetryScenario.Try64BitOnly:
+					r = DeleteRegistryKey(keyPath, 64);
+					break;
+				case RegistryRetryScenario.TryDefaultAndThen32AndThen64:
+					r = DeleteRegistryKey(keyPath);
+					if (r == false)
+					{
+						r = DeleteRegistryKey(keyPath, 32);
+					}
+					if (r == false)
+					{
+						r = DeleteRegistryKey(keyPath, 64);
+					}
+					break;
+				case RegistryRetryScenario.TryDefauldAndThen64AndThen32:
+					r = DeleteRegistryKey(keyPath);
+					if (r == false)
+					{
+						r = DeleteRegistryKey(keyPath, 64);
+					}
+					if (r == false)
+					{
+						r = DeleteRegistryKey(keyPath, 32);
+					}
+					break;
+				default:
+					throw new Exception("retryScenario '" + retryScenario + "' not implemented.");
+			}
+			return r;
+		}
+		/// <summary>
+		/// Deletes key from windows registry item.
+		/// </summary>
+		/// <param name="keyPath">Full path to registry item. Example: HKEY_CURRENT_USER\Software\Humanized\Enso\Location</param>
+		/// <param name="forceUsageOf32Or64Subkey">On 32-bit OS there is only single node. On 64-bit OS a 32-bit application will be looking at the HKLM\Software\Wow6432Node node by default and 64-bit application will use HKLM\Software. Using this parameter you can override this behaviour.</param>
+		/// <returns>true on success</returns>
+		public static bool DeleteRegistryKey(string keyPath, int? forceUsageOf32Or64Subkey = null)
+		{
+			bool success = false;
+			try
+			{
+				string[] keyPathSteps = keyPath.Trim().Split(new char[] { '\\' }, StringSplitOptions.RemoveEmptyEntries);
+				RegistryKey hive = null;
+				if (keyPathSteps[0] == "HKEY_CURRENT_USER")
+				{
+					hive = Microsoft.Win32.Registry.CurrentUser;
+				}
+				else if (keyPathSteps[0] == "HKEY_LOCAL_MACHINE")
+				{
+					hive = Microsoft.Win32.Registry.LocalMachine;
+				}
+				else if (keyPathSteps[0] == "HKEY_CLASSES_ROOT")
+				{
+					hive = Microsoft.Win32.Registry.ClassesRoot;
+				}
+				else if (keyPathSteps[0] == "HKEY_CURRENT_CONFIG")
+				{
+					hive = Microsoft.Win32.Registry.CurrentConfig;
+				}
+				else if (keyPathSteps[0] == "HKEY_DYN_DATA")
+				{
+					hive = Microsoft.Win32.Registry.DynData;
+				}
+				else if (keyPathSteps[0] == "HKEY_PERFORMANCE_DATA")
+				{
+					hive = Microsoft.Win32.Registry.PerformanceData;
+				}
+				else
+				{
+					throw new Exception("Hive name not recognized.");
+				}
+
+				string hiveName = keyPathSteps[0];
+				string subKey = null;
+				if (keyPathSteps.Length > 2)
+				{
+					int i = 1;
+					subKey = string.Empty;
+					while (i < keyPathSteps.Length - 1)
+					{
+						subKey += keyPathSteps[i] + '\\';
+						i++;
+					}
+					subKey.Remove(subKey.Length - 2);
+					hive = hive.OpenSubKey(subKey);
+				}
+				string propertyName = keyPathSteps[keyPathSteps.Length - 1];
+
+				if (forceUsageOf32Or64Subkey == null)
+				{
+					hive.DeleteSubKey(propertyName, true);
+					success = true;
+				}
+				else if (forceUsageOf32Or64Subkey == 32)
+				{
+					success = RegistryWOW6432.DeleteRegKey32(hiveName, subKey, propertyName);
+				}
+				else if (forceUsageOf32Or64Subkey == 64)
+				{
+					success = RegistryWOW6432.DeleteRegKey64(hiveName, subKey, propertyName);
+				}
+				else
+				{
+					throw new Exception("forceUsageOf32Or64Subkey must be 32 or 64.");
+				}
+
+			}
+			catch (Exception) { success = false; }
+
+			return success;
+		}
+
+		/// <summary>
+		/// Deletes value from windows registry item.
+		/// </summary>
+		/// <param name="keyPath">Full path to registry item. Example: HKEY_CURRENT_USER\Software\Humanized\Enso\Location</param>
+		/// <param name="retryScenario">On 32-bit OS there is only single node. On 64-bit OS a 32-bit application will be looking at the HKLM\Software\Wow6432Node node by default and 64-bit application will use HKLM\Software. Using this parameter you can override this behaviour.</param>
+		/// <returns>true on success</returns>
+		public static bool DeleteRegistryValue(string keyPath, RegistryRetryScenario retryScenario)
+		{
+			bool r;
+			switch (retryScenario)
+			{
+				case RegistryRetryScenario.TryDefaultOnly:
+					r = DeleteRegistryValue(keyPath);
+					break;
+				case RegistryRetryScenario.Try32BitOnly:
+					r = DeleteRegistryValue(keyPath, 32);
+					break;
+				case RegistryRetryScenario.Try64BitOnly:
+					r = DeleteRegistryValue(keyPath, 64);
+					break;
+				case RegistryRetryScenario.TryDefaultAndThen32AndThen64:
+					r = DeleteRegistryValue(keyPath);
+					if (r == false)
+					{
+						r = DeleteRegistryValue(keyPath, 32);
+					}
+					if (r == false)
+					{
+						r = DeleteRegistryValue(keyPath, 64);
+					}
+					break;
+				case RegistryRetryScenario.TryDefauldAndThen64AndThen32:
+					r = DeleteRegistryValue(keyPath);
+					if (r == false)
+					{
+						r = DeleteRegistryValue(keyPath, 64);
+					}
+					if (r == false)
+					{
+						r = DeleteRegistryValue(keyPath, 32);
+					}
+					break;
+				default:
+					throw new Exception("retryScenario '" + retryScenario + "' not implemented.");
+			}
+			return r;
+		}
+		/// <summary>
+		/// Deletes value from windows registry item.
+		/// </summary>
+		/// <param name="keyPath">Full path to registry item. Example: HKEY_CURRENT_USER\Software\Humanized\Enso\Location</param>
+		/// <param name="forceUsageOf32Or64Subkey">On 32-bit OS there is only single node. On 64-bit OS a 32-bit application will be looking at the HKLM\Software\Wow6432Node node by default and 64-bit application will use HKLM\Software. Using this parameter you can override this behaviour.</param>
+		/// <returns>true on success</returns>
+		public static bool DeleteRegistryValue(string keyPath, int? forceUsageOf32Or64Subkey = null)
+		{
+			bool success = false;
+			try
+			{
+				string[] keyPathSteps = keyPath.Trim().Split(new char[] { '\\' }, StringSplitOptions.RemoveEmptyEntries);
+				RegistryKey hive = null;
+				if (keyPathSteps[0] == "HKEY_CURRENT_USER")
+				{
+					hive = Microsoft.Win32.Registry.CurrentUser;
+				}
+				else if (keyPathSteps[0] == "HKEY_LOCAL_MACHINE")
+				{
+					hive = Microsoft.Win32.Registry.LocalMachine;
+				}
+				else if (keyPathSteps[0] == "HKEY_CLASSES_ROOT")
+				{
+					hive = Microsoft.Win32.Registry.ClassesRoot;
+				}
+				else if (keyPathSteps[0] == "HKEY_CURRENT_CONFIG")
+				{
+					hive = Microsoft.Win32.Registry.CurrentConfig;
+				}
+				else if (keyPathSteps[0] == "HKEY_DYN_DATA")
+				{
+					hive = Microsoft.Win32.Registry.DynData;
+				}
+				else if (keyPathSteps[0] == "HKEY_PERFORMANCE_DATA")
+				{
+					hive = Microsoft.Win32.Registry.PerformanceData;
+				}
+				else
+				{
+					throw new Exception("Hive name not recognized.");
+				}
+
+				string hiveName = keyPathSteps[0];
+				string subKey = null;
+				if (keyPathSteps.Length > 2)
+				{
+					int i = 1;
+					subKey = string.Empty;
+					while (i < keyPathSteps.Length - 1)
+					{
+						subKey += keyPathSteps[i] + '\\';
+						i++;
+					}
+					subKey.Remove(subKey.Length - 2);
+					hive = hive.OpenSubKey(subKey);
+				}
+				string propertyName = keyPathSteps[keyPathSteps.Length - 1];
+
+				if (forceUsageOf32Or64Subkey == null)
+				{
+					hive.DeleteValue(propertyName, true);
+					success = true;
+				}
+				else if (forceUsageOf32Or64Subkey == 32)
+				{
+					success = RegistryWOW6432.DeleteRegValue32(hiveName, subKey, propertyName);
+				}
+				else if (forceUsageOf32Or64Subkey == 64)
+				{
+					success = RegistryWOW6432.DeleteRegValue64(hiveName, subKey, propertyName);
+				}
+				else
+				{
+					throw new Exception("forceUsageOf32Or64Subkey must be 32 or 64.");
+				}
+
+			}
+			catch (Exception) { success = false; }
 
 			return success;
 		}
@@ -469,7 +727,7 @@ namespace CraftSynth.BuildingBlocks.IO
 			Read = 0x00020019,
 			Write = 0x00020006,
 			Execute = 0x00020019,
-			AllAccess = 0x000f003f
+			AllAccess = 0x000f013f
 		}
 		#endregion
 		#endregion Read value
@@ -527,7 +785,7 @@ namespace CraftSynth.BuildingBlocks.IO
 			int hkey = 0;
 			try
 			{
-				uint lResult = RegOpenKeyEx(inHive, inKeyName, 0, (int) RegSAM.SetValue | (int) in32or64key, out hkey);
+				uint lResult = RegOpenKeyEx(inHive, inKeyName, 0, (int)RegSAM.SetValue | (int)in32or64key, out hkey);
 				if (0 != lResult)
 				{
 					success = false;
@@ -539,23 +797,23 @@ namespace CraftSynth.BuildingBlocks.IO
 					switch (valueType)
 					{
 						case RegistryValueKind.String:
-							size = ((string) value).Length + 1;
-							pData = Marshal.StringToHGlobalAnsi((string) value);
+							size = ((string)value).Length + 1;
+							pData = Marshal.StringToHGlobalAnsi((string)value);
 							break;
 						case RegistryValueKind.DWord:
-							size = Marshal.SizeOf(typeof (Int32));
+							size = Marshal.SizeOf(typeof(Int32));
 							pData = Marshal.AllocHGlobal(size);
-							Marshal.WriteInt32(pData, (int) value);
+							Marshal.WriteInt32(pData, (int)value);
 							break;
 						case RegistryValueKind.QWord:
-							size = Marshal.SizeOf(typeof (Int64));
+							size = Marshal.SizeOf(typeof(Int64));
 							pData = Marshal.AllocHGlobal(size);
-							Marshal.WriteInt64(pData, (long) value);
+							Marshal.WriteInt64(pData, (long)value);
 							break;
 					}
 
 					// Set the value
-					UIntPtr hkeyAsUintPtr = new UIntPtr((uint) hkey);
+					UIntPtr hkeyAsUintPtr = new UIntPtr((uint)hkey);
 					uint retVal = RegSetValueEx(hkeyAsUintPtr, inPropertyName, 0, valueType, pData, size);
 					success = retVal == 0;
 				}
@@ -570,6 +828,164 @@ namespace CraftSynth.BuildingBlocks.IO
 			}
 			return success;
 		}
+		#endregion
+
+		#region Delete Key
+		#region Member Variables
+		#region Read 64bit Reg from 32bit app
+		//public static UIntPtr HKEY_LOCAL_MACHINE = new UIntPtr(0x80000002u);
+		//public static UIntPtr HKEY_CURRENT_USER = new UIntPtr(0x80000001u);
+
+		//[DllImport("Advapi32.dll")]
+		//static extern uint RegOpenKeyEx(
+		//	UIntPtr hKey,
+		//	string lpSubKey,
+		//	uint ulOptions,
+		//	int samDesired,
+		//	out int phkResult);
+
+		//[DllImport("Advapi32.dll")]
+		//static extern uint RegCloseKey(int hKey);
+
+		[DllImport("advapi32.dll", EntryPoint = "RegDeleteKey", SetLastError = true)]
+		private static extern int RegDeleteKey(
+			UIntPtr hKey, // Handle to an open registry key
+			string lpSubKey); // The name of the key to be deleted.
+		#endregion
+		#endregion
+
+		#region Functions
+		public static bool DeleteRegKey64(string hiveName, string subKeyPath, string propertyName)
+		{
+			return DeleteRegKey64(GetRegHiveFromString(hiveName), subKeyPath, RegSAM.WOW64_64Key, propertyName);
+		}
+		public static bool DeleteRegKey64(this RegistryKey inKey, String inPropertyName)
+		{
+			string strKey = inKey.ToString();
+			string regHive = strKey.Split('\\')[0];
+			string regPath = strKey.Substring(strKey.IndexOf('\\') + 1);
+			return DeleteRegKey64(GetRegHiveFromString(regHive), regPath, RegSAM.WOW64_64Key, inPropertyName);
+		}
+
+		public static bool DeleteRegKey32(string hiveName, string subKeyPath, string propertyName)
+		{
+			return DeleteRegKey64(GetRegHiveFromString(hiveName), subKeyPath, RegSAM.WOW64_32Key, propertyName);
+		}
+
+		public static bool DeleteRegKey32(this RegistryKey inKey, String inPropertyName)
+		{
+			string strKey = inKey.ToString();
+			string regHive = strKey.Split('\\')[0];
+			string regPath = strKey.Substring(strKey.IndexOf('\\') + 1);
+			return DeleteRegKey64(GetRegHiveFromString(regHive), regPath, RegSAM.WOW64_32Key, inPropertyName);
+		}
+
+		static public bool DeleteRegKey64(UIntPtr inHive, String inKeyName, RegSAM in32or64key, String inPropertyName)
+		{
+			bool success = false;
+			//UIntPtr HKEY_LOCAL_MACHINE = (UIntPtr)0x80000002;
+			int hkey = 0;
+
+			try
+			{
+				uint lResult = RegOpenKeyEx(inHive, inKeyName, 0, (int)RegSAM.AllAccess | (int)in32or64key, out hkey);
+				if (0 == lResult)
+				{
+					UIntPtr hkeyAsUintPtr = new UIntPtr((uint)hkey);
+					int result = RegDeleteKey(hkeyAsUintPtr, inPropertyName);
+					success = result==0;
+				}
+			}
+			catch
+			{
+				success = false;
+			}
+			finally
+			{
+				if (0 != hkey) RegCloseKey(hkey);
+			}
+			return success;
+		}
+		#endregion
+		#endregion
+
+		#region Delete Value
+		#region Member Variables
+		#region Read 64bit Reg from 32bit app
+		//public static UIntPtr HKEY_LOCAL_MACHINE = new UIntPtr(0x80000002u);
+		//public static UIntPtr HKEY_CURRENT_USER = new UIntPtr(0x80000001u);
+
+		//[DllImport("Advapi32.dll")]
+		//static extern uint RegOpenKeyEx(
+		//	UIntPtr hKey,
+		//	string lpSubKey,
+		//	uint ulOptions,
+		//	int samDesired,
+		//	out int phkResult);
+
+		//[DllImport("Advapi32.dll")]
+		//static extern uint RegCloseKey(int hKey);
+
+		[DllImport("advapi32.dll", EntryPoint = "RegDeleteValue", SetLastError = true)]
+		private static extern int RegDeleteValue(
+			UIntPtr hKey, // Handle to an open registry key
+			string lpSubKey); // The name of the value to be deleted.
+		#endregion
+		#endregion
+
+		#region Functions
+		public static bool DeleteRegValue64(string hiveName, string subKeyPath, string propertyName)
+		{
+			return DeleteRegValue64(GetRegHiveFromString(hiveName), subKeyPath, RegSAM.WOW64_64Key, propertyName);
+		}
+		public static bool DeleteRegValue64(this RegistryKey inKey, String inPropertyName)
+		{
+			string strKey = inKey.ToString();
+			string regHive = strKey.Split('\\')[0];
+			string regPath = strKey.Substring(strKey.IndexOf('\\') + 1);
+			return DeleteRegValue64(GetRegHiveFromString(regHive), regPath, RegSAM.WOW64_64Key, inPropertyName);
+		}
+
+		public static bool DeleteRegValue32(string hiveName, string subKeyPath, string propertyName)
+		{
+			return DeleteRegValue64(GetRegHiveFromString(hiveName), subKeyPath, RegSAM.WOW64_32Key, propertyName);
+		}
+
+		public static bool DeleteRegValue32(this RegistryKey inKey, String inPropertyName)
+		{
+			string strKey = inKey.ToString();
+			string regHive = strKey.Split('\\')[0];
+			string regPath = strKey.Substring(strKey.IndexOf('\\') + 1);
+			return DeleteRegValue64(GetRegHiveFromString(regHive), regPath, RegSAM.WOW64_32Key, inPropertyName);
+		}
+
+		static public bool DeleteRegValue64(UIntPtr inHive, String inKeyName, RegSAM in32or64key, String inPropertyName)
+		{
+			bool success = false;
+			//UIntPtr HKEY_LOCAL_MACHINE = (UIntPtr)0x80000002;
+			int hkey = 0;
+
+			try
+			{
+				uint lResult = RegOpenKeyEx(inHive, inKeyName, 0, (int)RegSAM.AllAccess | (int)in32or64key, out hkey);
+				if (0 == lResult)
+				{
+					UIntPtr hkeyAsUintPtr = new UIntPtr((uint)hkey);
+					int result = RegDeleteValue(hkeyAsUintPtr, inPropertyName);
+					success = result == 0;
+				}
+			}
+			catch
+			{
+				success = false;
+			}
+			finally
+			{
+				if (0 != hkey) RegCloseKey(hkey);
+			}
+			return success;
+		}
+		#endregion
 		#endregion
 	}
 }

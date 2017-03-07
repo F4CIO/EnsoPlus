@@ -98,10 +98,19 @@ IF "$(ConfigurationName)" == "CraftSynth_Debug_With_Full_Building_Blocks" $(Proj
     <Compile Include="CraftSynth.BuildingBlocks.Common.DateAndTime.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CraftSynth.BuildingBlocks.Common.EventsDisabler.cs" />
+  </ItemGroup>
+  <ItemGroup>
     <Compile Include="CraftSynth.BuildingBlocks.Common.ExtenderClass.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CraftSynth.BuildingBlocks.Common.Misc.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="CraftSynth.BuildingBlocks.Encryption.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="CraftSynth.BuildingBlocks.IO.Clipboard.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CraftSynth.BuildingBlocks.IO.FileSystem.cs" />
@@ -110,67 +119,10 @@ IF "$(ConfigurationName)" == "CraftSynth_Debug_With_Full_Building_Blocks" $(Proj
     <Compile Include="CraftSynth.BuildingBlocks.IO.Http.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CraftSynth.BuildingBlocks.IO.Registry.cs" />
+  </ItemGroup>
+  <ItemGroup>
     <Compile Include="CraftSynth.BuildingBlocks.IO.WindowsNT.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="CraftSynth.BuildingBlocks.IO.Xml.Misc.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="CraftSynth.BuildingBlocks.Logging.CustomTraceLog.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="CraftSynth.BuildingBlocks.Logging.Misc.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="CraftSynth.BuildingBlocks.UI.WindowsForms.FormDisplayer.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="CraftSynth.BuildingBlocks.UI.WindowsForms.FormDriver.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="CraftSynth.BuildingBlocks.UI.WindowsForms.KeysHelper.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="CraftSynth.BuildingBlocks.UI.WindowsForms.Misc.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="CraftSynth.BuildingBlocks.WindowsNT.Misc.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="CraftSynth.BuildingBlocks.WindowsNT.NativeMethods.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="CraftSynth.BuildingBlocks.WindowsNT.UserActivityHook.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="CraftSynth.BuildingBlocks.WindowsNT.WindowsManager.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="CraftSynth.BuildingBlocks.Common.EventsDisabler.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="CraftSynth.BuildingBlocks.WindowsNT.ProcessLiteInfo.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="CraftSynth.BuildingBlocks.WindowsNT.WindowsMessage.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="CraftSynth.BuildingBlocks.WindowsNT.WindowsMessageCopyData.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="CraftSynth.BuildingBlocks.Encryption.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="CraftSynth.BuildingBlocks.UI.Graphics.Misc.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="CraftSynth.BuildingBlocks.UI.Console.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="CraftSynth.BuildingBlocks.UI.Graphics.CompressibleImage.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="CraftSynth.BuildingBlocks.UI.WindowsForms.Slider.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CraftSynth.BuildingBlocks.IO.Xml.CustomXmlAttributes.cs" />
@@ -185,12 +137,60 @@ IF "$(ConfigurationName)" == "CraftSynth_Debug_With_Full_Building_Blocks" $(Proj
     <Compile Include="CraftSynth.BuildingBlocks.IO.Xml.CustomXmlSerializerBase.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CraftSynth.BuildingBlocks.IO.Clipboard.cs" />
+    <Compile Include="CraftSynth.BuildingBlocks.IO.Xml.Misc.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CraftSynth.BuildingBlocks.IO.Registry.cs" />
+    <Compile Include="CraftSynth.BuildingBlocks.Logging.CustomTraceLog.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="CraftSynth.BuildingBlocks.Logging.Misc.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="CraftSynth.BuildingBlocks.UI.Console.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="CraftSynth.BuildingBlocks.UI.Graphics.Misc.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="CraftSynth.BuildingBlocks.UI.Graphics.CompressibleImage.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="CraftSynth.BuildingBlocks.UI.WindowsForms.FormDisplayer.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="CraftSynth.BuildingBlocks.UI.WindowsForms.FormDriver.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="CraftSynth.BuildingBlocks.UI.WindowsForms.KeysHelper.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="CraftSynth.BuildingBlocks.UI.WindowsForms.Misc.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="CraftSynth.BuildingBlocks.UI.WindowsForms.Slider.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CraftSynth.BuildingBlocks.Validation.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="CraftSynth.BuildingBlocks.WindowsNT.Misc.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="CraftSynth.BuildingBlocks.WindowsNT.NativeMethods.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="CraftSynth.BuildingBlocks.WindowsNT.UserActivityHook.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="CraftSynth.BuildingBlocks.WindowsNT.WindowsManager.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="CraftSynth.BuildingBlocks.WindowsNT.WindowsMessage.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="CraftSynth.BuildingBlocks.WindowsNT.WindowsMessageCopyData.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="CraftSynth.BuildingBlocks.WindowsNT.ProcessLiteInfo.cs" />
   </ItemGroup>
 </Project>
