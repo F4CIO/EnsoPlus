@@ -11,3 +11,9 @@ D:\Projects\CraftSynth.EnsoPlus\SourceCodeForStandaloneVersion\EnsoPlus.UserActi
 D:\Projects\CraftSynth.EnsoPlus\SourceCodeForStandaloneVersion\EnsoPlus.UserActivityBroadcaster\obj\x86\Debug\EnsoPlus.UserActivityBroadcaster.csproj.GenerateResource.Cache
 D:\Projects\CraftSynth.EnsoPlus\SourceCodeForStandaloneVersion\EnsoPlus.UserActivityBroadcaster\obj\x86\Debug\EnsoPlus.UserActivityBroadcaster.exe
 D:\Projects\CraftSynth.EnsoPlus\SourceCodeForStandaloneVersion\EnsoPlus.UserActivityBroadcaster\obj\x86\Debug\EnsoPlus.UserActivityBroadcaster.pdb
+D:\Projects\CraftSynth.EnsoPlus\SourceCodeForOpenSource\Build\Debug\EnsoPlus.UserActivityBroadcaster.exe
+D:\Projects\CraftSynth.EnsoPlus\SourceCodeForOpenSource\Build\Debug\EnsoPlus.UserActivityBroadcaster.pdb
+D:\Projects\CraftSynth.EnsoPlus\SourceCodeForOpenSource\EnsoPlus.UserActivityBroadcaster\obj\x86\Debug\EnsoPlus.UserActivityBroadcaster.Properties.Resources.resources
+D:\Projects\CraftSynth.EnsoPlus\SourceCodeForOpenSource\EnsoPlus.UserActivityBroadcaster\obj\x86\Debug\EnsoPlus.UserActivityBroadcaster.csproj.GenerateResource.Cache
+D:\Projects\CraftSynth.EnsoPlus\SourceCodeForOpenSource\EnsoPlus.UserActivityBroadcaster\obj\x86\Debug\EnsoPlus.UserActivityBroadcaster.exe
+D:\Projects\CraftSynth.EnsoPlus\SourceCodeForOpenSource\EnsoPlus.UserActivityBroadcaster\obj\x86\Debug\EnsoPlus.UserActivityBroadcaster.pdb
